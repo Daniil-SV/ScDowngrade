@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
 	
 	if (is_sc2)
 	{
-		std::cout << "Downgrading from Sc2 to Sc1..." << std::endl;
+		std::cout << "Downgrading from Sc2 to Sc1 v3..." << std::endl;
 
 		// Sc2 has a little bit different vertices order
 		// Sort in sc1 order
@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
 	}
 	else
 	{
-		std::cout << "Downgrading from Sc1 to Sc0.5..." << std::endl;
+		std::cout << "Downgrading from Sc1 v2 to Sc v1..." << std::endl;
 
 		for (SWFTexture& texture : swf.textures)
 		{

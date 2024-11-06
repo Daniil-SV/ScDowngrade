@@ -23,6 +23,16 @@ int main(int argc, char* argv[])
 {
 	if (argc <= 1)
 	{
+		std::cout << "Usage: ScDowngrade.exe <input file> <output file> <target version>" << std::endl;
+		std::cout << "Available versions: 1 | 0.5" << std::endl;	
+		return 1;
+	}
+	
+	float version = std::stof(argv[3]);
+	
+	if (version != 1.0f && version != 0.5f)
+	{
+		std::cout << "Incorrect version! Available versions: 1 | 0.5" << std::endl;	
 		return 1;
 	}
 
@@ -40,13 +50,13 @@ int main(int argc, char* argv[])
 	SupercellSWF swf;
 	swf.load(input);
 	
+	std::cout << "Downgrading from Sc2 to Sc1..." << std::endl;
+
+	// Sc2 has a little bit different vertices order
+	// Sort in sc1 order
+
 	if (is_sc2)
 	{
-		std::cout << "Downgrading from Sc2 to Sc1 v3..." << std::endl;
-
-		// Sc2 has a little bit different vertices order
-		// Sort in sc1 order
-
 		for (Shape& shape : swf.shapes)
 		{
 			for (ShapeDrawBitmapCommand& command : shape.commands)
@@ -54,7 +64,7 @@ int main(int argc, char* argv[])
 				SWFVector<ShapeDrawBitmapCommandVertex> vertices = command.vertices;
 				SWFVector<uint16_t> indices;
 				indices.reserve(vertices.size());
-
+	
 				indices.push_back(0);
 				for (uint16_t i = 1; i < floor((float)vertices.size() / 2) * 2; i += 2) {
 					indices.push_back(i);
@@ -62,20 +72,18 @@ int main(int argc, char* argv[])
 				for (uint16_t i = floor(((float)vertices.size() - 1) / 2) * 2; i > 0; i -= 2) {
 					indices.push_back(i);
 				}
-
+	
 				for (uint16_t i = 0; vertices.size() > i; i++)
 				{
 					command.vertices[i] = vertices[indices[i]];
 				}
 			}
 		}
-
-		std::cout << "Saving sc1..." << std::endl;
-		swf.save(output, Signature::Zstandard);
 	}
-	else
+	
+	if (version == 0.5f)
 	{
-		std::cout << "Downgrading from Sc1 v2 to Sc v1..." << std::endl;
+		std::cout << "Downgrading from Sc1 to Sc1 v0.5..." << std::endl;
 
 		for (SWFTexture& texture : swf.textures)
 		{
@@ -91,7 +99,13 @@ int main(int argc, char* argv[])
 		swf.save_custom_property = false;
 		swf.use_multi_resolution = false;
 		swf.use_low_resolution = false;
+		std::cout << "Saving Sc1 v0.5..." << std::endl;
 		swf.save(output, Signature::Lzma);
+	}
+	else 
+	{
+		std::cout << "Saving Sc1..." << std::endl;
+		swf.save(output, Signature::Zstandard);
 	}
 
 	std::cout << "Success" << std::endl;

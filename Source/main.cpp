@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
 		{
 			for (ShapeDrawBitmapCommand& command : shape.commands)
 			{
-				SWFVector<ShapeDrawBitmapCommandVertex> vertices = command.vertices;
+				ShapeDrawBitmapCommandVertexArray vertices = command.vertices;
 				SWFVector<uint16_t> indices;
 				indices.reserve(vertices.size());
 	
@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
 				for (uint16_t i = 1; i < floor((float)vertices.size() / 2) * 2; i += 2) {
 					indices.push_back(i);
 				}
-				for (uint16_t i = floor(((float)vertices.size() - 1) / 2) * 2; i > 0; i -= 2) {
+				for (uint16_t i = (uint16_t)floor(((float)vertices.size() - 1) / 2) * 2; i > 0; i -= 2) {
 					indices.push_back(i);
 				}
 	

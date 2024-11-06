@@ -6,6 +6,8 @@ namespace fs = std::filesystem;
 #include "flash/flash.h"
 using namespace sc::flash;
 
+#include "core/console/console.h"
+
 
 static bool is_sc2_file(fs::path path)
 {
@@ -21,23 +23,44 @@ static bool is_sc2_file(fs::path path)
 
 int main(int argc, char* argv[])
 {
-	if (argc <= 1)
-	{
-		std::cout << "Usage: ScDowngrade.exe <input file> <output file> <target version>" << std::endl;
-		std::cout << "Available versions: 1 | 0.5" << std::endl;	
-		return 1;
+	fs::path executable = argv[0];
+	fs::path executable_name = executable.stem();
+
+	// Arguments
+	sc::ArgumentParser parser(executable_name.string(), "Tool for downgrading Supercell Flash files");
+
+	parser.add_argument("input")
+		.help("Input .sc file")
+		.required();
+
+	parser.add_argument("output")
+		.help("Name for output .sc file")
+		.required();
+
+	parser.add_argument("version")
+		.help("Target version for file. Possible values: 1.0 or 0.5")
+		.scan<'g', float>()
+		.default_value(0.0f);
+
+	try {
+		parser.parse_args(argc, argv);
 	}
-	
-	float version = std::stof(argv[3]);
-	
-	if (version != 1.0f && version != 0.5f)
-	{
-		std::cout << "Incorrect version! Available versions: 1 | 0.5" << std::endl;	
+	catch (const std::exception& err) {
+		std::cout << parser << std::endl;
+
+		std::cout << "Error! " << err.what() << std::endl;
 		return 1;
 	}
 
-	fs::path input(argv[1]);
-	fs::path output(argv[2]);
+	if (parser["--help"] == true || argc == 1)
+	{
+		std::cout << parser << std::endl;
+		return 0;
+	}
+
+	float version = parser.get<float>("version");
+	fs::path input(parser.get<std::string>("input"));
+	fs::path output(parser.get<std::string>("output"));
 
 	if (!fs::exists(input))
 	{
@@ -45,7 +68,24 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
+	if (version != 1.0f && version != 0.5f && version != 0.0f)
+	{
+		std::cout << "Incorrect target version!" << std::endl;
+		return 0;
+	}
+
 	bool is_sc2 = is_sc2_file(input);
+
+	if (is_sc2 && version == 0.f)
+	{
+		version = 1.0f;
+	}
+	else
+	{
+		version = 0.5f;
+	}
+
+
 
 	SupercellSWF swf;
 	swf.load(input);
@@ -62,7 +102,7 @@ int main(int argc, char* argv[])
 			for (ShapeDrawBitmapCommand& command : shape.commands)
 			{
 				ShapeDrawBitmapCommandVertexArray vertices = command.vertices;
-				SWFVector<uint16_t> indices;
+				ShapeDrawBitmapCommandTrianglesArray indices;
 				indices.reserve(vertices.size());
 	
 				indices.push_back(0);

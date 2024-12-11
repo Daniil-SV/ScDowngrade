@@ -8,26 +8,13 @@ using namespace sc::flash;
 
 #include "core/console/console.h"
 
-
-static bool is_sc2_file(fs::path path)
-{
-	sc::InputFileStream file(path);
-
-	if (file.read_unsigned_short() == SC_MAGIC && file.read_unsigned_int() == 5)
-	{
-		return true;
-	}
-
-	return false;
-}
-
 int main(int argc, char* argv[])
 {
 	fs::path executable = argv[0];
 	fs::path executable_name = executable.stem();
 
 	// Arguments
-	sc::ArgumentParser parser(executable_name.string(), "Tool for downgrading Supercell Flash files");
+	wk::ArgumentParser parser(executable_name.string(), "Tool for downgrading Supercell Flash files");
 
 	parser.add_argument("input")
 		.help("Input .sc file")
@@ -74,7 +61,11 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 
-	bool is_sc2 = is_sc2_file(input);
+	bool is_sc2 = false;
+	{
+		wk::InputFileStream file(input);
+		is_sc2 = SupercellSWF::IsSC2(file);
+	}
 
 	if (is_sc2 && version == 0.f)
 	{
@@ -84,8 +75,6 @@ int main(int argc, char* argv[])
 	{
 		version = 0.5f;
 	}
-
-
 
 	SupercellSWF swf;
 	swf.load(input);
@@ -101,22 +90,7 @@ int main(int argc, char* argv[])
 		{
 			for (ShapeDrawBitmapCommand& command : shape.commands)
 			{
-				ShapeDrawBitmapCommandVertexArray vertices = command.vertices;
-				ShapeDrawBitmapCommandTrianglesArray indices;
-				indices.reserve(vertices.size());
-	
-				indices.push_back(0);
-				for (uint16_t i = 1; i < floor((float)vertices.size() / 2) * 2; i += 2) {
-					indices.push_back(i);
-				}
-				for (uint16_t i = (uint16_t)floor(((float)vertices.size() - 1) / 2) * 2; i > 0; i -= 2) {
-					indices.push_back(i);
-				}
-	
-				for (uint16_t i = 0; vertices.size() > i; i++)
-				{
-					command.vertices[i] = vertices[indices[i]];
-				}
+				command.sort_advanced_vertices();
 			}
 		}
 	}

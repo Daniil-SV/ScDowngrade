@@ -10,12 +10,12 @@ set(SOURCE Source/main.cpp)
 FetchContent_Declare(
     SupercellFlash
     GIT_REPOSITORY https://github.com/sc-workshop/SupercellFlash.git
-    GIT_TAG 2.0
+    GIT_TAG main
 )
 FetchContent_MakeAvailable(SupercellFlash)
 
 add_executable(${TARGET} ${SOURCE})
-sc_project_setup(${TARGET}) 
+wk_project_setup(${TARGET}) 
 
 target_link_libraries(${TARGET} PUBLIC
     supercell::flash

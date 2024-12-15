@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
 			textfield.auto_kern = false;
 		}
 
-		swf.use_external_texture_files = false;
+		swf.compress_external_textures = false;
 		swf.save_custom_property = false;
 		swf.use_multi_resolution = false;
 		swf.use_low_resolution = false;

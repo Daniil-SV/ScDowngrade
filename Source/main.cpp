@@ -81,16 +81,16 @@ int main(int argc, char* argv[])
 	
 	std::cout << "Downgrading from Sc2 to Sc1..." << std::endl;
 
-	// Sc2 has a little bit different vertices order
-	// Sort in sc1 order
-
+	// Common stuff converting
 	if (is_sc2)
 	{
+		// Sc2 has a little bit different vertices order
+		// Sort in sc1 order
 		for (Shape& shape : swf.shapes)
 		{
 			for (ShapeDrawBitmapCommand& command : shape.commands)
 			{
-				command.sort_advanced_vertices();
+				command.sort_advanced_vertices(false);
 			}
 		}
 	}
@@ -119,6 +119,16 @@ int main(int argc, char* argv[])
 	else 
 	{
 		std::cout << "Saving Sc1..." << std::endl;
+		for (SWFTexture& texture : swf.textures)
+		{
+			// decompress sctx to raw to avoid unsuported encoding exception in texture tag selector function
+			if (texture.encoding() == SWFTexture::TextureEncoding::SupercellTexture)
+			{
+				texture.encoding(SWFTexture::TextureEncoding::Raw);
+			}
+		}
+
+		swf.use_external_textures = false;
 		swf.save(output, Signature::Zstandard);
 	}
 

@@ -16,13 +16,14 @@ void downgrade(const fs::path& input, const fs::path& output, float target)
 		is_sc2 = SupercellSWF::IsSC2(file);
 	}
 
-	if (is_sc2 && target == 0.f)
+	// auto detect version
+	if (target == -1.0f)
 	{
-		target = 1.0f;
-	}
-	else
-	{
-		target = 0.5f;
+		if (is_sc2)
+			target = 1.0f;
+		else
+			target = 0.5f;
+
 	}
 
 	SupercellSWF swf;
@@ -101,7 +102,7 @@ int main(int argc, char* argv[])
 	parser.add_argument("version")
 		.help("Target version for file. Possible values: 2.0, 1.0, 0.5")
 		.scan<'g', float>()
-		.default_value(0.0f);
+		.default_value(-1.0f);
 
 	try {
 		parser.parse_args(argc, argv);
@@ -129,7 +130,7 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	if (version != 1.0f && version != 0.5f && version != 0.0f)
+	if (version != 1.0f && version != 0.5f && version != -1.0f)
 	{
 		std::cout << "Incorrect target version!" << std::endl;
 		return 0;
